@@ -19,6 +19,12 @@ def format_num(num: int) -> str:
         return f"{num/1_000:.1f}K"
     return str(num)
 
+# 🔥 تحويل كود الدولة إلى علم (🇸🇦)
+def country_flag(alpha2: str) -> str:
+    if not alpha2 or len(alpha2) != 2:
+        return ""
+    return chr(ord(alpha2[0].upper()) + 127397) + chr(ord(alpha2[1].upper()) + 127397)
+
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.reply_to(message, "أرسل يوزر تيك توك بدون @ ، وأنا أعطيك كل التفاصيل 📊")
@@ -40,14 +46,14 @@ def get_info(message):
 
         nickname = escape_md(user.get("nickname", "غير متوفر"))
 
-        # معالجة الدولة
+        # الدولة مع العلم
         region_code = user.get("region", "")
         if region_code:
-            try:
-                country = pycountry.countries.get(alpha_2=region_code.upper())
-                region_name = country.name if country else "غير معروف"
-                region = f"{region_name} ({region_code})"
-            except:
+            country = pycountry.countries.get(alpha_2=region_code.upper())
+            if country:
+                flag = country_flag(region_code)
+                region = f"{flag} {country.name}"
+            else:
                 region = f"غير معروف ({region_code})"
         else:
             region = "غير معروف"
@@ -65,7 +71,7 @@ def get_info(message):
             f"# 📌 معلومات حساب تيك توك\n\n"
             f"👤 اليوزر: @{escape_md(username)}\n"
             f"🔥 الاسم: {nickname}\n"
-            f"🌍 الدولة / المنطقة: {escape_md(region)}\n\n"
+            f"🌍 الدولة / المنطقة: {region}\n\n"
             f"👥 عدد المتابعين: {followers}\n"
             f"➡️ يتابع: {following}\n"
             f"🎥 عدد الفيديوهات: {videos}\n"

@@ -1,9 +1,11 @@
 import telebot
 import requests
 import re
+import os
+import pycountry
 
-# التوكن حقك
-BOT_TOKEN = "8064586141:AAEQWtZy72I20BbQe7IbokOevqGsFlrw2zY"
+# التوكن حقك من Railway Variables
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # دالة للهروب من الرموز الخاصة في MarkdownV2
@@ -40,7 +42,18 @@ def get_info(message):
         stats = data.get("stats", {})
 
         nickname = escape_md(user.get("nickname", "غير متوفر"))
-        region = escape_md(user.get("region", "غير معروف"))
+
+        # ترجمة كود الدولة لاسم الدولة
+        region_code = user.get("region", "")
+        if region_code:
+            try:
+                country = pycountry.countries.get(alpha_2=region_code.upper())
+                region = escape_md(country.name if country else region_code)
+            except:
+                region = escape_md(region_code)
+        else:
+            region = "غير معروف"
+
         followers = format_num(stats.get("followerCount", 0))
         following = format_num(stats.get("followingCount", 0))
         likes = format_num(stats.get("heartCount", 0))
@@ -75,4 +88,3 @@ def get_info(message):
 
 print("✅ البوت شغال ...")
 bot.polling(none_stop=True)
-

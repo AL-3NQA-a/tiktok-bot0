@@ -4,15 +4,12 @@ import re
 import os
 import pycountry
 
-# التوكن حقك من Railway Variables
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# دالة للهروب من الرموز الخاصة في MarkdownV2
 def escape_md(text: str) -> str:
     return re.sub(r'([_*\[\]()~`>#+\-=|{}.!])', r'\\\1', str(text))
 
-# دالة لتنسيق الأرقام بشكل مختصر (K, M, B)
 def format_num(num: int) -> str:
     if num >= 1_000_000_000:
         return f"{num/1_000_000_000:.1f}B"
@@ -43,14 +40,15 @@ def get_info(message):
 
         nickname = escape_md(user.get("nickname", "غير متوفر"))
 
-        # ترجمة كود الدولة لاسم الدولة
+        # معالجة الدولة
         region_code = user.get("region", "")
         if region_code:
             try:
                 country = pycountry.countries.get(alpha_2=region_code.upper())
-                region = escape_md(country.name if country else region_code)
+                region_name = country.name if country else "غير معروف"
+                region = f"{region_name} ({region_code})"
             except:
-                region = escape_md(region_code)
+                region = f"غير معروف ({region_code})"
         else:
             region = "غير معروف"
 
@@ -62,13 +60,12 @@ def get_info(message):
         avatar = user.get("avatarLarger", "")
         link = escape_md(f"https://www.tiktok.com/@{username}")
 
-        # الرسالة داخل كود بلوك ملون (MarkdownV2)
         caption = (
             "```python\n"
             f"# 📌 معلومات حساب تيك توك\n\n"
             f"👤 اليوزر: @{escape_md(username)}\n"
             f"🔥 الاسم: {nickname}\n"
-            f"🌍 الدولة / المنطقة: {region}\n\n"
+            f"🌍 الدولة / المنطقة: {escape_md(region)}\n\n"
             f"👥 عدد المتابعين: {followers}\n"
             f"➡️ يتابع: {following}\n"
             f"🎥 عدد الفيديوهات: {videos}\n"
